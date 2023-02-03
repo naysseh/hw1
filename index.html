@@ -15,7 +15,7 @@
   <div id="graph1">
 
     <svg id="sfMap" width="600" height="600"></svg>
-    <svg id="bar" width="500" height="500"></svg>
+    <svg id="bar" width="500" height="300"></svg>
   </div>
   
   <script>
@@ -166,17 +166,78 @@
       //             .style("stroke", "blue");
       // VERTICAL!!!!!!!
 
-      // const xScaleBand = d3.scaleBand()
-      //                      .domain(['Owner', 'Site'])
-      //                      .rangeRound([marginsBar.left, barWidth]);  
+      // horizontal bars
+      // new scales for horiztonal work
+      const scaleBand = d3.scaleBand()
+                           .domain(['Owner', 'Site'])
+                           .rangeRound([barHeight, 0]);  
 
       // // y scale for left axis
-      // const yScaleOwner = d3.scaleLinear()
-      //                       .domain([0, (ownershipArray.private +ownershipArray.city)])
-      //                       .range([barHeight, 0]);
+      const scaleOwner = d3.scaleLinear()
+                            .domain([0, (ownershipArray.private +ownershipArray.city)])
+                            .range([marginsBar.left, barWidth+marginsBar.right]);
+
+      let leftAxis = d3.axisLeft(scaleBand);
+      barChartArea.append('g')
+                  .attr('class', 'y-axis')
+                  .attr('transform', `translate(${0},${0})`)
+                  .call(leftAxis); 
 
 
+      
+      // add label for left axis
+      barChartArea.append("text")
+                  .text("Ownership")
+                  .attr('transform', `translate(${0},${barHeight/2}) rotate(-90)`);
+      //text for bottom
+      barChartArea.append("text")
+                  .text("Ownership")
+                  .attr('transform', `translate(${barWidth / 2  - marginsBar.left - 20},${barHeight+marginsBar.bottom-5})`);
 
+      let bottomAxis = d3.axisBottom(scaleOwner);
+      barChartArea.append('g')
+                  .attr('class', 'x-axis')
+                  .attr('transform', `translate(${marginsBar.left - scaleBand.bandwidth() / 2},${barHeight + marginsBar.top})`)
+                  .call(bottomAxis);
+
+      barChartArea.append("line")
+                  .attr("class", "barOwner")
+                  .attr("x1", 0)
+                  .attr("x2", scaleOwner(ownershipArray.private))
+                  .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2)
+                  .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
+                  .style("stroke-width", scaleBand.bandwidth()/2)
+                  .style("stroke", "pink");
+
+      barChartArea.append("line")
+                  .attr("class", "barOwner")
+                  .attr("x1", scaleOwner(ownershipArray.private))
+                  .attr("x2", scaleOwner(ownershipArray.private) + scaleOwner(ownershipArray.city))
+                  .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2 )
+                  .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
+                  .style("stroke-width", scaleBand.bandwidth()/2)
+                  .style("stroke", "black");
+
+      barChartArea.append("line")
+                  .attr("class", "barSite")
+                  .attr("x1", 0)
+                  .attr("x2", scaleOwner(siteArray.sidewalk))
+                  .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2)
+                  .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
+                  .style("stroke-width", scaleBand.bandwidth()/2)
+                  .style("stroke", "green");
+
+      barChartArea.append("line")
+                  .attr("class", "barSite")
+                  .attr("x1", scaleOwner(siteArray.sidewalk))
+                  .attr("x2", scaleOwner(siteArray.sidewalk) + scaleOwner(siteArray.yard))
+                  .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2 )
+                  .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
+                  .style("stroke-width", scaleBand.bandwidth()/2)
+                  .style("stroke", "blue");
+
+    // horizontal bars
+    
     }
 
     requestData();
