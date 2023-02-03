@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HW 1 Natasha Aysseh nca28</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+
+    <style>
+      
+    </style>
+    
+  </head>
+<body>
+
+  <div id="graph1">
+
+    <svg id="sfMap" width="600" height="600"></svg>
+    <svg id="bar" width="500" height="500"></svg>
+  </div>
+  
+  <script>
+
+    const svg = d3.select("svg#sfMap");
+
+    const barChart = d3.select("svg#bar");
+    const widthBar = barChart.attr("width");
+    const heightBar = barChart.attr("height");
+    const marginsBar = {top: 10, right: 10, bottom: 50, left: 50};
+
+    const widthMap = svg.attr("width");
+    const heightMap = svg.attr("height");
+    const marginsMap = {top: 10, right: 10, bottom: 10, left: 10};
+
+    const mapWidth = widthMap - marginsMap.left - marginsMap.right;
+    const mapHeight = heightMap - marginsMap.top - marginsMap.bottom;
+
+    const barWidth = widthBar - marginsBar.left - marginsBar.right;
+    const barHeight = heightBar - marginsBar.top - marginsBar.bottom;
+
+    const barChartArea = barChart.append("g")
+                                 .attr("transform", `translate(${marginsBar.left},${marginsBar.top})`);
+
+    const mapArea = svg.append("g")
+                       .attr("transform",`translate(${marginsMap.left},${marginsMap.top})`);
+                             
+    const requestData = async function () { 
+      const data = await d3.csv("SF_trees.csv", d3.autoType);
+
+      const topoData = await d3.json("SF-Neighborhoods.geo.json");
+      console.log(data); //data log
+      console.log(topoData);
+
+
+      // create list of counts for each type of ownership (City v private) and for the types of sites (on/near sidewalk vs in a yard) - this is for the bar chart
+      let ownerships = d3.rollup(data, v => v.length, d => d.ownerClean);
+      let sites = d3.rollup(data, v => v.length, d => d.siteClean);
+
+      let ownershipTypes = ['Private', 'City'];
+      let siteTypes = ['Sidewalk', 'Yard'];
+
+      let ownershipArray = []; //shows couonts of the types of ownership (making into an array bc the map is making things hard)
+      ownershipTypes.forEach(d => 
+          ownershipArray.push({category: 'owner',type: d, count: ownerships.get(d)})
+      );
+
+      // do the same for the sites (sidewalk vs yard)
+      let siteArray = [];
+  
+      siteTypes.forEach(d => 
+          siteArray.push({category: 'site', type: d, count: sites.get(d)})
+      );
+
+
+      console.log(ownershipArray, siteArray);
+
+      var mesh = topojson.mesh(topoData, topoData.objects.SFNeighborhoods);
+      var features = topojson.feature(topoData, topoData.objects.SFNeighborhoods);
+
+      // create priojection/path
+      var proj = d3.geoMercator().fitSize([mapWidth, mapHeight], features);
+      var path = d3.geoPath().projection(proj);
+
+  
+      let viewport = mapArea.append("g");
+
+      // *******START MAP CODE**********
+      viewport.selectAll("path")
+              .data(features.features)
+              .join("path")
+              .style("fill", "white") //this will need to be changed depending on what i'm doing 
+              .attr("d", path);
+      let meshPaths = viewport.append("path")  
+                              .datum(mesh)
+                              .style("stroke-width", "1px")
+                              .style("stroke", "gray")
+                              .style("fill", "none")
+                              .attr("d", path); 
+
+      // fill in tree dots              
+      let treeDots = viewport.selectAll("circle.tree")
+                         .data(data)
+                         .join("circle")  
+                         .attr("class", "tree")
+                         .attr("cx", d => proj([d.Longitude, d.Latitude])[0])  
+                         .attr("cy", d => proj([d.Longitude, d.Latitude])[1])     
+                         .attr("r", "1px")       
+                         .style("fill", "green")
+                   
+      //  ****END MAP CODE*******
+                        
+      // *******START BAR CHART CODE**********
+
+      // const scaleLinear = d3.scaleLinear()
+      //                       .domain([])
+      //                       .range([barHeight, 0]);
+
+      // x scale for the bottom axis, scale band to just separate by ownership 
+      const xScaleOwner = d3.scaleBand()
+                       .domain(['Private', 'City'])
+                       .range([marginsBar.left, barWidth])
+
+      // testing out creating x scale for 100% stacked chart
+      const xScaleBand = d3.scaleBand()
+                           .domain()                
+
+      // y scale for left axis
+      const yScaleOwner = d3.scaleLinear()
+                            .domain([0, 40000])
+                            .range([barHeight, 0]);
+      
+      let xAxis = d3.axisBottom(xScaleOwner);
+      barChartArea.append('g')
+                  .attr('class', 'x-axis')
+                  .attr('transform', `translate(${marginsBar.left - xScaleOwner.bandwidth() / 2},${barHeight + marginsBar.top})`)
+                  .call(xAxis); 
+      
+      // add label for bottom axis
+      barChartArea.append("text")
+                  .text("Type of Ownership")
+                  .attr('transform', `translate(${barWidth / 2  - marginsBar.left -20},${barHeight+marginsBar.bottom-5})`);
+
+      let yAxis = d3.axisLeft(yScaleOwner);
+      barChartArea.append('g')
+                  .attr('class', 'y-axis')
+                  .attr('transform', `translate(${0},${marginsBar.top})`)
+                  .call(yAxis);
+      
+      console.log(ownershipArray);
+      // fill in data for bar chart
+      ownershipArray.forEach((d) => 
+          barChartArea.append("line")
+                      .attr("class", "barOwner")
+                      .attr("x1", (xScaleOwner(d['type'])+(xScaleOwner.bandwidth()/4)))
+                      .attr("x2", (xScaleOwner(d['type']) + (xScaleOwner.bandwidth()/4) ))
+                      .attr("y1", barHeight + marginsBar.top)
+                      .attr("y2", yScaleOwner(d.count))
+                      .style("stroke-width", xScaleOwner.bandwidth() / 2)
+                      .style("stroke", "pink")
+                      .text(d.count)
+          );
+      // barChartArea.selectAll("line.barOwner")
+      //             .data(ownershipArray)
+      //             .join('line')
+      //             .attr("class", "barOwner")
+      //             .attr("x1", d => xScaleOwner())
+      //             .attr("x2", d => xScaleOwner())
+      //             .attr("y1", barHeight)
+      //             .attr("y2", d => yScaleOwner(d.value));
+
+
+    }
+
+    requestData();
+  </script>
+
+
+</body>
+</html>
