@@ -20,13 +20,13 @@
   
   <script>
 
-    const svg = d3.select("svg#sfMap");
 
     const barChart = d3.select("svg#bar");
     const widthBar = barChart.attr("width");
     const heightBar = barChart.attr("height");
     const marginsBar = {top: 10, right: 10, bottom: 50, left: 50};
 
+    const svg = d3.select("svg#sfMap");
     const widthMap = svg.attr("width");
     const heightMap = svg.attr("height");
     const marginsMap = {top: 10, right: 10, bottom: 10, left: 10};
@@ -54,21 +54,13 @@
       // create list of counts for each type of ownership (City v private) and for the types of sites (on/near sidewalk vs in a yard) - this is for the bar chart
       let ownerships = d3.rollup(data, v => v.length, d => d.ownerClean);
       let sites = d3.rollup(data, v => v.length, d => d.siteClean);
+      console.log(ownerships);
 
-      let ownershipTypes = ['Private', 'City'];
-      let siteTypes = ['Sidewalk', 'Yard'];
+      // let ownershipTypes = ['Private', 'City'];
+      // let siteTypes = ['Sidewalk', 'Yard'];
 
-      let ownershipArray = []; //shows couonts of the types of ownership (making into an array bc the map is making things hard)
-      ownershipTypes.forEach(d => 
-          ownershipArray.push({category: 'owner',type: d, count: ownerships.get(d)})
-      );
-
-      // do the same for the sites (sidewalk vs yard)
-      let siteArray = [];
-  
-      siteTypes.forEach(d => 
-          siteArray.push({category: 'site', type: d, count: sites.get(d)})
-      );
+      let ownershipArray = {category: "Owner", private: ownerships.get("Private"), city: ownerships.get("City")};
+      let siteArray = {category: "Site", sidewalk: sites.get("Sidewalk"), yard: sites.get("Yard")};
 
 
       console.log(ownershipArray, siteArray);
@@ -110,62 +102,79 @@
                         
       // *******START BAR CHART CODE**********
 
-      // const scaleLinear = d3.scaleLinear()
-      //                       .domain([])
+      // x scale for stacked chart
+      // const xScaleBand = d3.scaleBand()
+      //                      .domain(['Owner', 'Site'])
+      //                      .rangeRound([marginsBar.left, barWidth]);  
+
+      // // y scale for left axis
+      // const yScaleOwner = d3.scaleLinear()
+      //                       .domain([0, (ownershipArray.private +ownershipArray.city)])
+      //                       .range([barHeight, 0]);
+      
+      // let xAxis = d3.axisBottom(xScaleBand);
+      // barChartArea.append('g')
+      //             .attr('class', 'x-axis')
+      //             .attr('transform', `translate(${marginsBar.left - xScaleBand.bandwidth() / 2},${barHeight + marginsBar.top})`)
+      //             .call(xAxis); 
+      
+      // // add label for bottom axis
+      // barChartArea.append("text")
+      //             .text("Type of Ownership")
+      //             .attr('transform', `translate(${barWidth / 2  - marginsBar.left -20},${barHeight+marginsBar.bottom-5})`);
+
+      // let yAxis = d3.axisLeft(yScaleOwner);
+      // barChartArea.append('g')
+      //             .attr('class', 'y-axis')
+      //             .attr('transform', `translate(${0},${0})`)
+      //             .call(yAxis);
+      
+      // writing elements manually bc i am getting confused with the join :( ... but it works! 
+      // VERTICAL!!!!!!!
+      // barChartArea.append("line")
+      //             .attr("class", "barOwner")
+      //             .attr("x1", xScaleBand("Owner") + xScaleBand.bandwidth()/4)
+      //             .attr("x2", xScaleBand("Owner") + xScaleBand.bandwidth()/4)
+      //             .attr("y1", barHeight)
+      //             .attr("y2", yScaleOwner(ownershipArray.private))
+      //             .style("stroke-width", xScaleBand.bandwidth()/2)
+      //             .style("stroke", "pink");
+      // barChartArea.append("line")
+      //             .attr("class", "barOwner")
+      //             .attr("x1", xScaleBand("Owner") + xScaleBand.bandwidth()/4)
+      //             .attr("x2", xScaleBand("Owner") + xScaleBand.bandwidth()/4)
+      //             .attr("y1", yScaleOwner(ownershipArray.private) - (barHeight - yScaleOwner(ownershipArray.city)) )
+      //             .attr("y2", yScaleOwner(ownershipArray.private))
+      //             .style("stroke-width", xScaleBand.bandwidth()/2)
+      //             .style("stroke", "black");
+      
+      // barChartArea.append("line")
+      //             .attr("class", "barSite")
+      //             .attr("x1", xScaleBand("Site") + xScaleBand.bandwidth()/4)
+      //             .attr("x2",  xScaleBand("Site") + xScaleBand.bandwidth()/4)
+      //             .attr("y1", barHeight)
+      //             .attr("y2", yScaleOwner(siteArray.sidewalk))
+      //             .style("stroke-width", xScaleBand.bandwidth()/2)
+      //             .style("stroke", "pink");
+      // barChartArea.append("line")
+      //             .attr("class", "barSite")
+      //             .attr("x1", xScaleBand("Site") + xScaleBand.bandwidth()/4)
+      //             .attr("x2",  xScaleBand("Site") + xScaleBand.bandwidth()/4)
+      //             .attr("y1", yScaleOwner(siteArray.sidewalk) - (barHeight - yScaleOwner(siteArray.yard)) )
+      //             .attr("y2", yScaleOwner(siteArray.sidewalk))
+      //             .style("stroke-width", xScaleBand.bandwidth()/2)
+      //             .style("stroke", "blue");
+      // VERTICAL!!!!!!!
+
+      // const xScaleBand = d3.scaleBand()
+      //                      .domain(['Owner', 'Site'])
+      //                      .rangeRound([marginsBar.left, barWidth]);  
+
+      // // y scale for left axis
+      // const yScaleOwner = d3.scaleLinear()
+      //                       .domain([0, (ownershipArray.private +ownershipArray.city)])
       //                       .range([barHeight, 0]);
 
-      // x scale for the bottom axis, scale band to just separate by ownership 
-      const xScaleOwner = d3.scaleBand()
-                       .domain(['Private', 'City'])
-                       .range([marginsBar.left, barWidth])
-
-      // testing out creating x scale for 100% stacked chart
-      const xScaleBand = d3.scaleBand()
-                           .domain()                
-
-      // y scale for left axis
-      const yScaleOwner = d3.scaleLinear()
-                            .domain([0, 40000])
-                            .range([barHeight, 0]);
-      
-      let xAxis = d3.axisBottom(xScaleOwner);
-      barChartArea.append('g')
-                  .attr('class', 'x-axis')
-                  .attr('transform', `translate(${marginsBar.left - xScaleOwner.bandwidth() / 2},${barHeight + marginsBar.top})`)
-                  .call(xAxis); 
-      
-      // add label for bottom axis
-      barChartArea.append("text")
-                  .text("Type of Ownership")
-                  .attr('transform', `translate(${barWidth / 2  - marginsBar.left -20},${barHeight+marginsBar.bottom-5})`);
-
-      let yAxis = d3.axisLeft(yScaleOwner);
-      barChartArea.append('g')
-                  .attr('class', 'y-axis')
-                  .attr('transform', `translate(${0},${marginsBar.top})`)
-                  .call(yAxis);
-      
-      console.log(ownershipArray);
-      // fill in data for bar chart
-      ownershipArray.forEach((d) => 
-          barChartArea.append("line")
-                      .attr("class", "barOwner")
-                      .attr("x1", (xScaleOwner(d['type'])+(xScaleOwner.bandwidth()/4)))
-                      .attr("x2", (xScaleOwner(d['type']) + (xScaleOwner.bandwidth()/4) ))
-                      .attr("y1", barHeight + marginsBar.top)
-                      .attr("y2", yScaleOwner(d.count))
-                      .style("stroke-width", xScaleOwner.bandwidth() / 2)
-                      .style("stroke", "pink")
-                      .text(d.count)
-          );
-      // barChartArea.selectAll("line.barOwner")
-      //             .data(ownershipArray)
-      //             .join('line')
-      //             .attr("class", "barOwner")
-      //             .attr("x1", d => xScaleOwner())
-      //             .attr("x2", d => xScaleOwner())
-      //             .attr("y1", barHeight)
-      //             .attr("y2", d => yScaleOwner(d.value));
 
 
     }
