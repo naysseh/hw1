@@ -9,19 +9,80 @@
       .domain {
         visibility: hidden;
       }
+
+      .main-div {
+        /* margin-left: 100px */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .big-div {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .title-block {
+        height: 100px;
+        margin-left: 20px;
+        margin-right: 20px;
+        background-color: #82CD47;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #title {
+        font-size: 30px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        color: darkslategray;
+      }
+
+      .sub-title-block p {
+        font-size: 20px;
+        margin-left: 40px;
+        margin-right: 40px;;
+        font-family: Arial, Helvetica, sans-serif;
+        color: darkslategray;
+        text-align: center;
+      }
+
+      .sub-title-block {
+        height: 50px;
+        margin-left: 20px;
+        margin-right: 20px;
+        margin-top: 30px;
+        /* background-color: #82CD47; */
+        display: flex;
+        /* flex-direction: column; */
+        justify-content: center;
+        align-items: center;
+      }
       
     </style>
     
   </head>
 <body>
 
-  <div id="graph1">
-
-    <svg id="sfMap" width="600" height="600"></svg>
-    <svg id="bar" width="500" height="300"></svg>
+  <div class="title-block">
+    <p id="title">San Francisco's Trees: Who are the caretakers?</p>
   </div>
-  <div style="margin-left: 100px">
-    <svg id="lollipop" width="700" height="500"></svg>
+  <div class="sub-title-block">
+    <p>How can we break down the ownership of SF's trees into public and private ownership? What is the balance between the two, and where are the trees most concentrated?</p>
+  </div>
+  </div>
+  <div class="big-div">
+    <div id="graph1">
+      <svg id="sfMap" width="400" height="400"></svg>
+    </div>
+    <div class="main-div">
+      <svg id="bar" width="400" height="200"></svg>
+      <svg id="lollipop" width="700" height="500"></svg>
+    </div>
   </div>
   
   <script>
@@ -126,7 +187,23 @@
                          .attr("cy", d => proj([d.Longitude, d.Latitude])[1])     
                          .attr("r", "1px")       
                          .style("fill", "green")
-                   
+      //add in circle to show most populated areas
+      viewport.append("circle") 
+              .attr("cx", proj([-122.495070, 37.749028])[0])
+              .attr("cy", proj([-122.495070, 37.749028])[1])
+              .attr("r", 50)
+              .style("fill", "none")
+              .style("stroke", "black")
+              .style("stroke-width", "3px")     
+              
+      viewport.append("circle") 
+              .attr("cx", proj([-122.427811, 37.774754])[0])
+              .attr("cy", proj([-122.427811, 37.774754])[1])
+              .attr("r", 70)
+              .style("fill", "none")
+              .style("stroke", "black")
+              .style("stroke-width", "3px") 
+
       //  ****END MAP CODE*******
                         
       // *******START BAR CHART CODE**********
@@ -229,8 +306,8 @@
                   .attr("x2", scaleOwner(ownershipArray.private))
                   .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2)
                   .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()/2)
-                  .style("stroke", "pink");
+                  .style("stroke-width", scaleBand.bandwidth()-20)
+                  .style("stroke", "#3D5656");
 
       barChartArea.append("line")
                   .attr("class", "barOwner")
@@ -238,26 +315,26 @@
                   .attr("x2", scaleOwner(ownershipArray.private) + scaleOwner(ownershipArray.city))
                   .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2 )
                   .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()/2)
-                  .style("stroke", "black");
+                  .style("stroke-width", scaleBand.bandwidth()-20)
+                  .style("stroke", "#68B984");
 
-      barChartArea.append("line")
-                  .attr("class", "barSite")
-                  .attr("x1", 0)
-                  .attr("x2", scaleOwner(siteArray.sidewalk))
-                  .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2)
-                  .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()/2)
-                  .style("stroke", "green");
+      // barChartArea.append("line")
+      //             .attr("class", "barSite")
+      //             .attr("x1", 0)
+      //             .attr("x2", scaleOwner(siteArray.sidewalk))
+      //             .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2)
+      //             .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
+      //             .style("stroke-width", scaleBand.bandwidth()/2)
+      //             .style("stroke", "#285430");
 
-      barChartArea.append("line")
-                  .attr("class", "barSite")
-                  .attr("x1", scaleOwner(siteArray.sidewalk))
-                  .attr("x2", scaleOwner(siteArray.sidewalk) + scaleOwner(siteArray.yard))
-                  .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2 )
-                  .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()/2)
-                  .style("stroke", "blue");
+      // barChartArea.append("line")
+      //             .attr("class", "barSite")
+      //             .attr("x1", scaleOwner(siteArray.sidewalk))
+      //             .attr("x2", scaleOwner(siteArray.sidewalk) + scaleOwner(siteArray.yard))
+      //             .attr("y1", scaleBand("Site") + scaleBand.bandwidth()/2 )
+      //             .attr("y2", scaleBand("Site") + scaleBand.bandwidth()/2)
+      //             .style("stroke-width", scaleBand.bandwidth()/2)
+      //             .style("stroke", "#A4BE7B");
 
       // horizontal bars
 
@@ -286,7 +363,7 @@
                   .call(leftAxisLolli);
 
       //now join lollipop sticks fgfsnkdfngdkncdscbdhj 
-      lolliArea.selectAll("line.sticks")
+      let sticks = lolliArea.selectAll("line.sticks")
                .data(ownerships2)
                .join("line")
                .attr("class", "sticks")
@@ -297,6 +374,15 @@
                .attr("y2", d => ownerScale(d[0]))
                .style("stroke-width", "2px")
                .style("stroke", "grey");
+
+      lolliArea.selectAll("circle.lollipop")
+            .data(ownerships2)
+            .join("circle")
+            .attr("class", "lollipop")
+            .attr("cx", d => lolliScale(d[1]))
+            .attr("cy", d => ownerScale(d[0]))
+            .attr("r", 4)
+            .style("fill", "#54B435")
 
 
 
