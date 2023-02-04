@@ -6,6 +6,9 @@
     <script src="https://d3js.org/topojson.v3.min.js"></script>
 
     <style>
+      .domain {
+        visibility: hidden;
+      }
       
     </style>
     
@@ -16,6 +19,9 @@
 
     <svg id="sfMap" width="600" height="600"></svg>
     <svg id="bar" width="500" height="300"></svg>
+  </div>
+  <div style="margin-left: 100px">
+    <svg id="lollipop" width="700" height="500"></svg>
   </div>
   
   <script>
@@ -31,6 +37,14 @@
     const heightMap = svg.attr("height");
     const marginsMap = {top: 10, right: 10, bottom: 10, left: 10};
 
+    const lolli = d3.select("svg#lollipop");
+    const widthLolli = lolli.attr("width");
+    const heightLolli = lolli.attr("height");
+    const marginsLolli = {top: 10, right: 10, bottom: 50, left: 150};
+
+    const lolliWidth = widthLolli - marginsLolli.left - marginsLolli.right;
+    const lolliHeight = heightLolli - marginsLolli.top - marginsLolli.bottom;
+
     const mapWidth = widthMap - marginsMap.left - marginsMap.right;
     const mapHeight = heightMap - marginsMap.top - marginsMap.bottom;
 
@@ -38,10 +52,13 @@
     const barHeight = heightBar - marginsBar.top - marginsBar.bottom;
 
     const barChartArea = barChart.append("g")
-                                 .attr("transform", `translate(${marginsBar.left},${marginsBar.top})`);
+                                 .attr("transform", `translate(${marginsBar.left}, ${marginsBar.top})`);
 
     const mapArea = svg.append("g")
-                       .attr("transform",`translate(${marginsMap.left},${marginsMap.top})`);
+                       .attr("transform",`translate(${marginsMap.left}, ${marginsMap.top})`);
+    
+    const lolliArea = lolli.append("g")
+                           .attr("transform", `translate(${marginsLolli.left}, ${marginsLolli.top})`);
                              
     const requestData = async function () { 
       const data = await d3.csv("SF_trees.csv", d3.autoType);
@@ -50,18 +67,31 @@
       console.log(data); //data log
       console.log(topoData);
 
-
       // create list of counts for each type of ownership (City v private) and for the types of sites (on/near sidewalk vs in a yard) - this is for the bar chart
       let ownerships = d3.rollup(data, v => v.length, d => d.ownerClean);
       let sites = d3.rollup(data, v => v.length, d => d.siteClean);
       console.log(ownerships);
+
+      let ownerships2 = d3.rollups(data, v => v.length, d => d.qCaretaker);
+      console.log(ownerships2);
+
+
+      ownerships2.sort((a, b) => d3.descending(a[1], b[1]));
+      console.log(ownerships2);
+
+      //sorted list of owners
+      let ownerMap = ownerships2.flat().filter(d => isNaN(d));
+      // array1.flat().map(arr => arr[0])
+      console.log(ownerMap);
+
+      let ownershipExtent = d3.extent(ownerships2, d => d[1]);
+      console.log(ownershipExtent);
 
       // let ownershipTypes = ['Private', 'City'];
       // let siteTypes = ['Sidewalk', 'Yard'];
 
       let ownershipArray = {category: "Owner", private: ownerships.get("Private"), city: ownerships.get("City")};
       let siteArray = {category: "Site", sidewalk: sites.get("Sidewalk"), yard: sites.get("Yard")};
-
 
       console.log(ownershipArray, siteArray);
 
@@ -71,7 +101,6 @@
       // create priojection/path
       var proj = d3.geoMercator().fitSize([mapWidth, mapHeight], features);
       var path = d3.geoPath().projection(proj);
-
   
       let viewport = mapArea.append("g");
 
@@ -179,24 +208,18 @@
 
       let leftAxis = d3.axisLeft(scaleBand);
       barChartArea.append('g')
-                  .attr('class', 'y-axis')
+                  .attr('class', 'y-axis domain')
                   .attr('transform', `translate(${0},${0})`)
                   .call(leftAxis); 
-
-
       
-      // add label for left axis
-      barChartArea.append("text")
-                  .text("Ownership")
-                  .attr('transform', `translate(${0},${barHeight/2}) rotate(-90)`);
-      //text for bottom
-      barChartArea.append("text")
-                  .text("Ownership")
-                  .attr('transform', `translate(${barWidth / 2  - marginsBar.left - 20},${barHeight+marginsBar.bottom-5})`);
+      // // add label for left axis
+      // barChartArea.append("text")
+      //             .text("Ownership")
+      //             .attr('transform', `translate(${0},${barHeight/2}) rotate(-90)`);
 
       let bottomAxis = d3.axisBottom(scaleOwner);
       barChartArea.append('g')
-                  .attr('class', 'x-axis')
+                  .attr('class', 'x-axis domain')
                   .attr('transform', `translate(${marginsBar.left - scaleBand.bandwidth() / 2},${barHeight + marginsBar.top})`)
                   .call(bottomAxis);
 
@@ -236,7 +259,48 @@
                   .style("stroke-width", scaleBand.bandwidth()/2)
                   .style("stroke", "blue");
 
-    // horizontal bars
+      // horizontal bars
+
+      // ********START LOLLIPOP CODE*********
+      const lolliScale = d3.scaleLog()
+                            .domain(ownershipExtent)
+                            .range([0, lolliWidth]);
+
+                            console.log(ownershipExtent, "brusdnjk")
+      const ownerScale = d3.scalePoint()
+                           .domain(ownerMap)
+                           .range([0, lolliHeight])
+      
+      console.log('testing scale', lolliScale(700))         
+
+      let bottomAxisLolli = d3.axisBottom(lolliScale).ticks(10);
+      lolliArea.append('g')
+                  .attr('class', 'x-axis')
+                  .attr('transform', `translate(${0}, ${lolliHeight + marginsLolli.top})`)
+                  .call(bottomAxisLolli);
+
+      let leftAxisLolli = d3.axisLeft(ownerScale);           
+      lolliArea.append('g')
+                  .attr('class', 'y-axis')
+                  .attr("transform", `translate(${0}, ${0})`)
+                  .call(leftAxisLolli);
+
+      //now join lollipop sticks fgfsnkdfngdkncdscbdhj 
+      lolliArea.selectAll("line.sticks")
+               .data(ownerships2)
+               .join("line")
+               .attr("class", "sticks")
+               .attr("id", d => d[1])
+               .attr("x1", 0)
+               .attr("x2", d => lolliScale(d[1]))
+               .attr("y1", d => ownerScale(d[0]))
+               .attr("y2", d => ownerScale(d[0]))
+               .style("stroke-width", "2px")
+               .style("stroke", "grey");
+
+
+
+      // ********END LOLLIPOP**********
     
     }
 
