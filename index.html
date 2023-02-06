@@ -21,6 +21,7 @@
         flex-direction: row;
         justify-content: center;
         align-items: center;
+        margin-top: 20px;
       }
 
       .title-block {
@@ -63,7 +64,67 @@
       .y-axis .tick line { 
         visibility: hidden;
       }
+
+      .legend {
+        width: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin-left: 10px;
+        margin-bottom: 10px;
+      }
       
+      .private-l, .city-l {
+        margin-left: 15px;
+        font-size: 14px;
+        color: darkslategray; 
+      }
+
+      .bar-div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .color-square.private {
+        background-color: #3D5656;
+        width: 12px;
+        height: 12px;
+        align-self: center;
+      }
+
+      .color-square.city {
+        background-color: #68B984;
+        width: 12px;
+        height: 12px;
+        align-self: center;
+      }
+
+      .legend-row { 
+        display: flex;
+        flex-direction: row;
+      }
+
+      .bar-title {
+        font-family: Arial, Helvetica, sans-serif;
+        color: darkslategray;
+      }
+
+      .graph1 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      #map-desc {
+        font-family: Arial, Helvetica, sans-serif;
+        color: darkslategray;
+        text-align: center;
+      }
+      
+      #bar {
+        margin-left: 60px;
+      }
     </style>
     
   </head>
@@ -79,10 +140,26 @@
   <div class="big-div">
     <div id="graph1">
       <svg id="sfMap" width="400" height="400"></svg>
+      <div id="map-desc">Most populated areas of San Francisco</div>
     </div>
     <div class="main-div">
-      <svg id="bar" width="400" height="200"></svg>
+      <p class="bar-title">Tree Caretaker Breakdown</p>
+      <div class="bar-div">
+        <svg id="bar" width="400" height="50"></svg>
+        <div class="legend">
+          <div class="legend-row">
+            <div class="color-square private"></div>
+            <div class="private-l">Private Ownership</div>
+          </div>
+          
+          <div class="legend-row">
+            <div class="color-square city"></div>
+            <div class="city-l">City Ownership</div>
+          </div>
+        </div>
+      </div>
       <svg id="lollipop" width="700" height="500"></svg>
+      
     </div>
   </div>
   
@@ -216,11 +293,6 @@
                   .attr('class', 'y-axis domain')
                   .attr('transform', `translate(${0},${0})`)
                   .call(leftAxis); 
-      
-      // // add label for left axis
-      // barChartArea.append("text")
-      //             .text("Ownership")
-      //             .attr('transform', `translate(${0},${barHeight/2}) rotate(-90)`);
 
       let bottomAxis = d3.axisBottom(scaleOwner);
       barChartArea.append('g')
@@ -234,7 +306,7 @@
                   .attr("x2", scaleOwner(ownershipArray.private))
                   .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2)
                   .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()-20)
+                  .style("stroke-width", 70)
                   .style("stroke", "#3D5656");
 
       barChartArea.append("line")
@@ -243,7 +315,7 @@
                   .attr("x2", scaleOwner(ownershipArray.private) + scaleOwner(ownershipArray.city))
                   .attr("y1", scaleBand("Owner") + scaleBand.bandwidth()/2 )
                   .attr("y2", scaleBand("Owner") + scaleBand.bandwidth()/2)
-                  .style("stroke-width", scaleBand.bandwidth()-20)
+                  .style("stroke-width", 70)
                   .style("stroke", "#68B984");
 
       // ********END BAR CHART CODE**********
