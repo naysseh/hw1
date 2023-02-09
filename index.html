@@ -53,9 +53,17 @@
 
       .sub-title-block {
         height: 50px;
-        margin-left: 20px;
-        margin-right: 20px;
+        /* margin-left: 110px;
+        margin-right: 110px; */
         margin-top: 30px;
+        margin-bottom: 20px;
+        width: 700px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .flex-div-title {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -114,17 +122,31 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        align-items: center;
       }
 
       #map-desc {
         font-family: Arial, Helvetica, sans-serif;
         color: darkslategray;
         text-align: center;
+        background-color: lightgray;
+        padding-top: 5px;
+        padding-bottom: 7px;
+        border-radius: 7px;
+        width: 320px;
+        margin-right: 0px;
       }
       
       #bar {
         margin-left: 60px;
       }
+
+      #side-note {
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      
     </style>
     
   </head>
@@ -133,14 +155,21 @@
   <div class="title-block">
     <p id="title">San Francisco's Trees: Who are the caretakers?</p>
   </div>
-  <div class="sub-title-block">
-    <p>How can we break down the ownership of SF's trees into public and private caretaking status? What is the balance between the two, and where are the trees most concentrated?</p>
-  </div>
+  <div class="flex-div-title">
+    <div class="sub-title-block">
+      <p>How can we break down the ownership of SF's trees into public and private caretaking status? What is the balance between the two, and where are the trees most concentrated?</p>
+    </div>
+  </div>  
   </div>
   <div class="big-div">
     <div id="graph1">
       <svg id="sfMap" width="400" height="400"></svg>
-      <div id="map-desc">Most populated areas of San Francisco</div>
+      <div style="display: flex; align-items: center; flex-direction: column;">
+        <div id="map-desc">
+          <p style="margin-bottom: 0px; margin-top: 2px; font-size: 14px;">Tree Density</p>
+          <em id="side-note">Most highly populated residential neighborhoods circled</em>
+        </div>
+      </div>
     </div>
     <div class="main-div">
       <p class="bar-title">Tree Caretaker Breakdown</p>
